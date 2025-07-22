@@ -27,11 +27,11 @@ class _GasCompositionInputState extends State<GasCompositionInput> {
     'Argon'
   ];
 
-  // Component abbreviations
+  // Abbreviations for each component, matching the order of _componentNames
   final List<String> _componentAbbreviations = [
     'CH₄', 'N₂', 'CO₂', 'C₂H₆', 'C₃H₈',
-    'i-C₄H₁₀', 'n-C₄H₁₀', 'i-C₅H₁₂', 'n-C₅H₁₂', 'n-C₆H₁₄',
-    'n-C₇H₁₆', 'n-C₈H₁₈', 'n-C₉H₂₀', 'n-C₁₀H₂₂', 'H₂',
+    'i-C₄H₁₀', 'n-C₄H₁₀', 'i-C₅H₁₂', 'n-C₅H₁₂', 'C₆H₁₄',
+    'C₇H₁₆', 'C₈H₁₈', 'C₉H₂₀', 'C₁₀H₂₂', 'H₂',
     'O₂', 'CO', 'H₂O', 'H₂S', 'He',
     'Ar'
   ];
@@ -261,49 +261,49 @@ class _GasCompositionInputState extends State<GasCompositionInput> {
         ),
         Expanded(
           child: ListView.builder(
-            shrinkWrap: true,
             itemCount: _controllers.length,
             itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      '${_componentNames[index]} (${_componentAbbreviations[index]})',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      overflow: TextOverflow.ellipsis, // Handle long names
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      '${_molarMasses[index].toStringAsFixed(3)} g/mol',
-                      style: Theme.of(context).textTheme.bodySmall,
-                      overflow: TextOverflow.ellipsis, // Handle long molar masses
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: TextFormField(
-                      controller: _controllers[index],
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                        border: OutlineInputBorder(),
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        '${_componentNames[index]} (${_componentAbbreviations[index]})',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        overflow: TextOverflow.ellipsis, // Handle long names
                       ),
-                      onChanged: (value) {
-                        _updateParent(_getCurrentCompositionAsFraction());
-                      },
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
-        )),
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        '${_molarMasses[index].toStringAsFixed(3)} g/mol',
+                        style: Theme.of(context).textTheme.bodySmall,
+                        overflow: TextOverflow.ellipsis, // Handle long molar masses
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: TextFormField(
+                        controller: _controllers[index],
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) {
+                          _updateParent(_getCurrentCompositionAsFraction());
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       ],
     );
   }

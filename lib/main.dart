@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aga8_calc_app/aga8_service.dart';
 import 'package:aga8_calc_app/gas_composition_input.dart';
-import 'package:aga8_calc_app/constants.dart';
-import 'package:aga8_calc_app/calculator_service.dart';
 import 'package:flutter/services.dart'; // For Clipboard
 
 void main() async {
@@ -19,7 +17,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'AGA8 Gas Calculator',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          elevation: 0,
+        ),
       ),
       home: const MyHomePage(),
     );
@@ -34,9 +37,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // Use constants from the constants.dart file
-  
   AGA8Result? _result;
+  AGA8Result? _standardResult;
   List<double> _composition = [];
   double _pressure = 100.0;
   double _temperature = 25.0; // Default to 25°C
@@ -44,120 +46,28 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isTempCelsius = true; // Default to °C
   double _compositionSum = 0.0; // To track the sum of composition
 
-  AGA8Result? _standardResult; // Result at standard conditions
-
-  // Calculate results at standard conditions
-  AGA8Result? _calculateStandardConditions(List<double> composition) {
-    // Use the CalculatorService to handle validation and caching
-    return CalculatorService.calculateForStandardConditions(composition);
-  }
-
   void _calculate() {
-    // Validate composition before calculation
-    if (_composition.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter gas composition values')),
-      );
-      return;
-    }
-    
-    // Use CalculatorService to handle unit conversions, validation, and caching
-    final result = CalculatorService.calculateForConditions(
-      _composition, 
-      _pressure, 
-      _temperature, 
-      _isPressureBarg, 
-      _isTempCelsius
-    );
-    
-    if (result == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Calculation failed. Please check your inputs.')),
-      );
-      return;
-    }
-    
-    // Calculate at standard conditions using the dedicated method
-    final standardResult = _calculateStandardConditions(_composition);
-    
+    // No SnackBar here, warning is now visual
+    final pressureAbs = _isPressureBarg ? _pressure + 1.01325 : _pressure;
+    final tempK = _isTempCelsius ? _temperature + 273.15 : _temperature;
+
+    final result = AGA8Service.calculate(_composition, pressureAbs, tempK);
+    // Standard conditions: 1 atm (1.01325 bar), 15°C (288.15 K)
+    final standardResult = AGA8Service.calculate(_composition, 1.01325, 288.15);
     setState(() {
       _result = result;
       _standardResult = standardResult;
     });
-    
-    // Show error message if calculation had errors
-    if (result.error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_getErrorMessage(result.error!))),
-      );
-    }
-  }
-
-  // Utility method to format numeric values consistently
-  String _formatNumber(double value, {int? decimalPlaces}) {
-    return value.toStringAsFixed(decimalPlaces ?? AppConstants.DEFAULT_DECIMAL_PLACES);
-  }
-
-  // Helper method to convert AGA8Error enum to user-friendly message
-  String _getErrorMessage(AGA8Error error) {
-    switch (error) {
-      case AGA8Error.invalidComposition:
-        return 'Invalid gas composition. Please ensure all components sum to 1.0 (100%).'; 
-      case AGA8Error.invalidPressure:
-        return 'Invalid pressure value. Pressure must be positive.'; 
-      case AGA8Error.invalidTemperature:
-        return 'Invalid temperature value. Temperature must be positive in Kelvin.'; 
-      case AGA8Error.calculationError:
-        return 'Error during calculation. Please check input values.'; 
-      case AGA8Error.unknown:
-        return 'An unknown error occurred during calculation.'; 
-    }
   }
 
   void _copyResults() {
     if (_result != null) {
-      final String pressureText = _isPressureBarg 
-          ? "${_formatNumber(_pressure, decimalPlaces: AppConstants.PRESSURE_TEMP_DECIMAL_PLACES)} bar(g)" 
-          : "${_formatNumber(_pressure, decimalPlaces: AppConstants.PRESSURE_TEMP_DECIMAL_PLACES)} bar(a)";
-      final String tempText = _isTempCelsius 
-          ? "${_formatNumber(_temperature, decimalPlaces: AppConstants.PRESSURE_TEMP_DECIMAL_PLACES)} °C" 
-          : "${_formatNumber(_temperature, decimalPlaces: AppConstants.PRESSURE_TEMP_DECIMAL_PLACES)} K";
-      
-      String resultsText = '''
-At Specified Conditions ($pressureText, $tempText):
+      final String resultsText = '''
+Z-Factor: ${_result!.zFactor.toStringAsFixed(5)}
+Gas Density: ${_result!.gasDensity.toStringAsFixed(5)} kg/m³
+Molar Mass: ${_result!.molarMass.toStringAsFixed(5)} g/mol
+Speed of Sound: ${_result!.speedOfSound.toStringAsFixed(5)} m/s
 ''';
-
-      // Add error information if present
-      if (_result!.error != null) {
-        resultsText += 'Error: ${_getErrorMessage(_result!.error!)}\n';
-      }
-      
-      resultsText += '''
-Z-Factor: ${_formatNumber(_result!.zFactor)}
-Gas Density: ${_formatNumber(_result!.gasDensity)} kg/m³
-Molar Mass: ${_formatNumber(_result!.molarMass)} g/mol
-Speed of Sound: ${_formatNumber(_result!.speedOfSound)} m/s
-''';
-      
-      if (_standardResult != null) {
-        resultsText += '''
-
-At Standard Conditions (${_formatNumber(AppConstants.STANDARD_PRESSURE_BAR, decimalPlaces: AppConstants.PRESSURE_TEMP_DECIMAL_PLACES)} bar(a), ${_formatNumber(AppConstants.STANDARD_TEMP_K - AppConstants.CELSIUS_TO_KELVIN_OFFSET, decimalPlaces: AppConstants.PRESSURE_TEMP_DECIMAL_PLACES)} °C):
-''';
-        
-        // Add standard conditions error information if present
-        if (_standardResult!.error != null) {
-          resultsText += 'Error: ${_getErrorMessage(_standardResult!.error!)}\n';
-        }
-        
-        resultsText += '''
-Z-Factor: ${_formatNumber(_standardResult!.zFactor)}
-Gas Density: ${_formatNumber(_standardResult!.gasDensity)} kg/m³
-Molar Mass: ${_formatNumber(_standardResult!.molarMass)} g/mol
-Speed of Sound: ${_formatNumber(_standardResult!.speedOfSound)} m/s
-''';
-      }
-      
       Clipboard.setData(ClipboardData(text: resultsText));
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Results copied to clipboard!')),
@@ -167,7 +77,7 @@ Speed of Sound: ${_formatNumber(_standardResult!.speedOfSound)} m/s
 
   @override
   Widget build(BuildContext context) {
-    final isCompositionNormalized = (_compositionSum - 1.0).abs() < AppConstants.COMPOSITION_SUM_TOLERANCE;
+    final isCompositionNormalized = (_compositionSum - 1.0).abs() < 1e-6;
 
     return Scaffold(
       appBar: AppBar(
@@ -189,7 +99,6 @@ Speed of Sound: ${_formatNumber(_standardResult!.speedOfSound)} m/s
                     const SizedBox(height: 16),
                     Text('Gas Composition (Mole %)', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
-                    // Warning message for composition
                     if (!isCompositionNormalized)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
@@ -202,9 +111,7 @@ Speed of Sound: ${_formatNumber(_standardResult!.speedOfSound)} m/s
                       height: 300, // Fixed height for composition input
                       child: GasCompositionInput(
                         onChanged: (composition) {
-                          setState(() {
-                            _composition = composition;
-                          });
+                          _composition = composition;
                         },
                         onSumChanged: (sum) {
                           setState(() {
@@ -304,89 +211,54 @@ Speed of Sound: ${_formatNumber(_standardResult!.speedOfSound)} m/s
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Calculation Results', style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: 16),
-                      
-                      // Display error message if there is an error
-                      if (_result!.error != null) ...[  
-                        Container(
-                          padding: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(4.0),
-                          ),
-                          child: Row(
+                      // Main result column
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Calculation Results', style: Theme.of(context).textTheme.titleLarge),
+                            const SizedBox(height: 16),
+                            Text('Input Pressure: '
+                                '${_isPressureBarg ? (_pressure + 1.01325).toStringAsFixed(3) : _pressure.toStringAsFixed(3)} bar'),
+                            Text('Input Temperature: '
+                                '${_isTempCelsius ? (_temperature + 273.15).toStringAsFixed(2) : _temperature.toStringAsFixed(2)} K'),
+                            const SizedBox(height: 8),
+                            Text('Z-Factor: ${_result!.zFactor.toStringAsFixed(5)}'),
+                            Text('Gas Density: ${_result!.gasDensity.toStringAsFixed(5)} kg/m³'),
+                            Text('Molar Mass: ${_result!.molarMass.toStringAsFixed(5)} g/mol'),
+                            Text('Speed of Sound: ${_result!.speedOfSound.toStringAsFixed(5)} m/s'),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 32),
+                      // Standard condition column
+                      if (_standardResult != null)
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _getErrorMessage(_result!.error!),
-                                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                                ),
-                              ),
+                              Text('Standard Condition', style: Theme.of(context).textTheme.titleLarge),
+                              Text('(1 atm, 15°C)', style: Theme.of(context).textTheme.bodyMedium),
+                              const SizedBox(height: 16),
+                              Text('Z-Factor: ${_standardResult!.zFactor.toStringAsFixed(5)}'),
+                              Text('Gas Density: ${_standardResult!.gasDensity.toStringAsFixed(5)} kg/m³'),
+                              Text('Molar Mass: ${_standardResult!.molarMass.toStringAsFixed(5)} g/mol'),
+                              Text('Speed of Sound: ${_standardResult!.speedOfSound.toStringAsFixed(5)} m/s'),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 16),
-                      ],
-                      
-                      Text(
-                        'At Specified Conditions (${_isPressureBarg ? "${_formatNumber(_pressure, decimalPlaces: AppConstants.PRESSURE_TEMP_DECIMAL_PLACES)} bar(g)" : "${_formatNumber(_pressure, decimalPlaces: AppConstants.PRESSURE_TEMP_DECIMAL_PLACES)} bar(a)"}, ${_isTempCelsius ? "${_formatNumber(_temperature, decimalPlaces: AppConstants.PRESSURE_TEMP_DECIMAL_PLACES)} °C" : "${_formatNumber(_temperature, decimalPlaces: AppConstants.PRESSURE_TEMP_DECIMAL_PLACES)} K"}):', 
-                        style: Theme.of(context).textTheme.titleMedium
-                      ),
-                      const SizedBox(height: 8),
-                      Text('Z-Factor: ${_formatNumber(_result!.zFactor)}'),
-                      Text('Gas Density: ${_formatNumber(_result!.gasDensity)} kg/m³'),
-                      Text('Molar Mass: ${_formatNumber(_result!.molarMass)} g/mol'),
-                      Text('Speed of Sound: ${_formatNumber(_result!.speedOfSound)} m/s'),
-                      const SizedBox(height: 16),
-                      
-                      if (_standardResult != null) ...[  
-                        // Display standard conditions error if there is one
-                        if (_standardResult!.error != null) ...[  
-                          Container(
-                            padding: const EdgeInsets.all(8.0),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.errorContainer,
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Standard conditions: ${_getErrorMessage(_standardResult!.error!)}',
-                                    style: TextStyle(color: Theme.of(context).colorScheme.error),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                        
-                        Text(
-                          'At Standard Conditions (${_formatNumber(AppConstants.STANDARD_PRESSURE_BAR, decimalPlaces: AppConstants.PRESSURE_TEMP_DECIMAL_PLACES)} bar(a), ${_formatNumber(AppConstants.STANDARD_TEMP_K - AppConstants.CELSIUS_TO_KELVIN_OFFSET, decimalPlaces: AppConstants.PRESSURE_TEMP_DECIMAL_PLACES)} °C):', 
-                          style: Theme.of(context).textTheme.titleMedium
-                        ),
-                        const SizedBox(height: 8),
-                        Text('Z-Factor: ${_formatNumber(_standardResult!.zFactor)}'),
-                        Text('Gas Density: ${_formatNumber(_standardResult!.gasDensity)} kg/m³'),
-                        Text('Molar Mass: ${_formatNumber(_standardResult!.molarMass)} g/mol'),
-                        Text('Speed of Sound: ${_formatNumber(_standardResult!.speedOfSound)} m/s'),
-                        const SizedBox(height: 16),
-                      ],
-                      
+                      // Copy button at the bottom right
                       Align(
-                        alignment: Alignment.centerRight,
-                        child: ElevatedButton(
-                          onPressed: _copyResults,
-                          child: const Text('Copy All Results'),
+                        alignment: Alignment.bottomRight,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 16.0, top: 16.0),
+                          child: ElevatedButton(
+                            onPressed: _copyResults,
+                            child: const Text('Copy All Results'),
+                          ),
                         ),
                       ),
                     ],
