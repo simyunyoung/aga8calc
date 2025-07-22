@@ -32,7 +32,7 @@ class CalculatorService {
     final cacheKey = _generateCacheKey(composition, pressureAbs, tempK);
     final cachedResult = _cache[cacheKey];
     if (cachedResult != null) {
-      print('Using cached result for $cacheKey');
+  // Using cached result for $cacheKey
       return cachedResult;
     }
     
@@ -64,7 +64,7 @@ class CalculatorService {
     );
     final cachedResult = _cache[cacheKey];
     if (cachedResult != null) {
-      print('Using cached standard conditions result');
+  // Using cached standard conditions result
       return cachedResult;
     }
     
@@ -114,6 +114,6 @@ class CalculatorService {
   /// Clears the calculation cache
   static void clearCache() {
     _cache.clear();
-    print('Calculation cache cleared');
+  // Calculation cache cleared
   }
 }

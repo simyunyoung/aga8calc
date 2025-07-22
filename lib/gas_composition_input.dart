@@ -165,6 +165,7 @@ class _GasCompositionInputState extends State<GasCompositionInput> {
 
   void _pasteFromExcel() async {
     final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+    if (!mounted) return;
     if (clipboardData != null && clipboardData.text != null) {
       final lines = clipboardData.text!.trim().split('\n');
       List<double> pastedValues = [];
@@ -203,10 +204,12 @@ class _GasCompositionInputState extends State<GasCompositionInput> {
       }
       _updateControllersFromFraction(pastedCompositionFraction);
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Pasted ${lines.length} values from clipboard!')),
       );
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Clipboard is empty or contains no text.')),
       );

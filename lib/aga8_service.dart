@@ -49,7 +49,7 @@ class AGA8Service {
   static AGA8Result? calculate(List<double> composition, double pressure, double temperature) {
     // Validate inputs
     if (composition.isEmpty) {
-      print('Invalid composition: empty list');
+      // Invalid composition: empty list
       return AGA8Result(
         zFactor: 0, 
         gasDensity: 0, 
@@ -60,7 +60,7 @@ class AGA8Service {
     }
     
     if (pressure <= 0) {
-      print('Invalid pressure: $pressure (must be positive)');
+      // Invalid pressure (must be positive)
       return AGA8Result(
         zFactor: 0, 
         gasDensity: 0, 
@@ -71,7 +71,7 @@ class AGA8Service {
     }
     
     if (temperature <= 0) {
-      print('Invalid temperature: $temperature (must be positive)');
+      // Invalid temperature (must be positive)
       return AGA8Result(
         zFactor: 0, 
         gasDensity: 0, 
@@ -84,16 +84,15 @@ class AGA8Service {
     // Convert Dart List<double> to Float64List for JavaScript interop
     final jsComposition = Float64List.fromList(composition);
 
-    print('Calculating with composition: $composition');
-    print('Pressure: $pressure, Temperature: $temperature');
+  // Calculating with composition and conditions
 
     dynamic result;
     try {
       // Call the calculate method on the global aga8Bridge object
       result = callMethod(getProperty(globalThis, 'aga8Bridge'), 'calculate', [jsComposition, pressure, temperature]);
-      print('Result from JS: $result');
+  // Result from JS
     } catch (e) {
-      print('Error calling WASM: $e');
+  // Error calling WASM
       // If an error occurs during the JavaScript call, return error result
       return AGA8Result(
         zFactor: 0, 
@@ -106,7 +105,7 @@ class AGA8Service {
 
     if (result != null) {
       final aga8Result = AGA8Result.fromJS(result);
-      print('Parsed result: Z=${aga8Result.zFactor}, Density=${aga8Result.gasDensity}');
+  // Parsed result
       return aga8Result;
     }
     
@@ -166,17 +165,17 @@ class AGA8Result {
   /// [jsObject] is the JavaScript object returned by the WASM module
   /// Returns an AGA8Result with the properties from the JavaScript object
   factory AGA8Result.fromJS(dynamic jsObject) {
-    print('Creating AGA8Result from JS object: $jsObject');
+  // Creating AGA8Result from JS object
     
     // Check if properties exist and provide default values if they don't
     double getDoubleProperty(dynamic obj, String prop) {
       try {
-        print('Getting property: $prop');
+  // Getting property
         var value = getProperty(obj, prop);
-        print('Property $prop value: $value (${value.runtimeType})');
+  // Property value
         return value == null ? 0.0 : (value is double ? value : double.parse(value.toString()));
       } catch (e) {
-        print('Error getting property $prop: $e');
+  // Error getting property
         return 0.0;
       }
     }
@@ -203,12 +202,12 @@ class AGA8Result {
           default:
             if (errorStr.toString().isNotEmpty) {
               error = AGA8Error.unknown;
-              print('Unknown error from WASM: $errorStr');
+              // Unknown error from WASM
             }
         }
       }
     } catch (e) {
-      print('Error checking for error property: $e');
+  // Error checking for error property
     }
     
     final result = AGA8Result(
@@ -219,7 +218,7 @@ class AGA8Result {
       error: error,
     );
     
-    print('Created AGA8Result: $result');
+  // Created AGA8Result
     return result;
   }
 }
