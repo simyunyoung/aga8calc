@@ -207,64 +207,70 @@ Speed of Sound: ${_result!.speedOfSound.toStringAsFixed(5)} m/s
                 ),
               ),
             ),
-            if (_result != null)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Main result column
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Calculation Results', style: Theme.of(context).textTheme.titleLarge),
-                            const SizedBox(height: 16),
-                            Text('Input Pressure: '
-                                '${_isPressureBarg ? (_pressure + 1.01325).toStringAsFixed(3) : _pressure.toStringAsFixed(3)} bar'),
-                            Text('Input Temperature: '
-                                '${_isTempCelsius ? (_temperature + 273.15).toStringAsFixed(2) : _temperature.toStringAsFixed(2)} K'),
-                            const SizedBox(height: 8),
-                            Text('Z-Factor: ${_result!.zFactor.toStringAsFixed(5)}'),
-                            Text('Gas Density: ${_result!.gasDensity.toStringAsFixed(5)} kg/m³'),
-                            Text('Molar Mass: ${_result!.molarMass.toStringAsFixed(5)} g/mol'),
-                            Text('Speed of Sound: ${_result!.speedOfSound.toStringAsFixed(5)} m/s'),
-                          ],
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: _result == null
+                    ? Center(
+                        child: Text(
+                          'Calculation results will appear here after you click Calculate.',
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
-                      ),
-                      const SizedBox(width: 32),
-                      // Standard condition column
-                      if (_standardResult != null)
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Standard Condition', style: Theme.of(context).textTheme.titleLarge),
-                              Text('(1 atm, 15°C)', style: Theme.of(context).textTheme.bodyMedium),
-                              const SizedBox(height: 16),
-                              Text('Z-Factor: ${_standardResult!.zFactor.toStringAsFixed(5)}'),
-                              Text('Gas Density: ${_standardResult!.gasDensity.toStringAsFixed(5)} kg/m³'),
-                              Text('Molar Mass: ${_standardResult!.molarMass.toStringAsFixed(5)} g/mol'),
-                              Text('Speed of Sound: ${_standardResult!.speedOfSound.toStringAsFixed(5)} m/s'),
-                            ],
+                      )
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Main result column
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Calculation Results', style: Theme.of(context).textTheme.titleLarge),
+                                const SizedBox(height: 16),
+                                Text('Input Pressure: '
+                                    '${_isPressureBarg ? (_pressure + 1.01325).toStringAsFixed(3) : _pressure.toStringAsFixed(3)} bar'),
+                                Text('Input Temperature: '
+                                    '${_isTempCelsius ? (_temperature + 273.15).toStringAsFixed(2) : _temperature.toStringAsFixed(2)} K'),
+                                const SizedBox(height: 8),
+                                Text('Z-Factor: ${_result!.zFactor.toStringAsFixed(5)}'),
+                                Text('Gas Density: ${_result!.gasDensity.toStringAsFixed(5)} kg/m³'),
+                                Text('Molar Mass: ${_result!.molarMass.toStringAsFixed(5)} g/mol'),
+                                Text('Speed of Sound: ${_result!.speedOfSound.toStringAsFixed(5)} m/s'),
+                              ],
+                            ),
                           ),
-                        ),
-                      // Copy button at the bottom right
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 16.0, top: 16.0),
-                          child: ElevatedButton(
-                            onPressed: _copyResults,
-                            child: const Text('Copy All Results'),
+                          const SizedBox(width: 32),
+                          // Standard condition column
+                          if (_standardResult != null)
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Standard Condition', style: Theme.of(context).textTheme.titleLarge),
+                                  Text('(1 atm, 15°C)', style: Theme.of(context).textTheme.bodyMedium),
+                                  const SizedBox(height: 16),
+                                  Text('Z-Factor: ${_standardResult!.zFactor.toStringAsFixed(5)}'),
+                                  Text('Gas Density: ${_standardResult!.gasDensity.toStringAsFixed(5)} kg/m³'),
+                                  Text('Molar Mass: ${_standardResult!.molarMass.toStringAsFixed(5)} g/mol'),
+                                  Text('Speed of Sound: ${_standardResult!.speedOfSound.toStringAsFixed(5)} m/s'),
+                                ],
+                              ),
+                            ),
+                          // Copy button at the bottom right
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 16.0, top: 16.0),
+                              child: ElevatedButton(
+                                onPressed: _copyResults,
+                                child: const Text('Copy All Results'),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
               ),
+            ),
           ],
         ),
       ),

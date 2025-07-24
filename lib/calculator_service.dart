@@ -21,12 +21,12 @@ class CalculatorService {
     bool isTempCelsius
   ) {
     // Convert to absolute units for calculation
-    final pressureAbs = isPressureBarg 
-        ? pressure + AppConstants.BAR_TO_BARG_OFFSET 
-        : pressure;
-    final tempK = isTempCelsius 
-        ? temperature + AppConstants.CELSIUS_TO_KELVIN_OFFSET 
-        : temperature;
+  final pressureAbs = isPressureBarg 
+    ? pressure + AppConstants.barToBargOffset 
+    : pressure;
+  final tempK = isTempCelsius 
+    ? temperature + AppConstants.celsiusToKelvinOffset 
+    : temperature;
     
     // Check cache first
     final cacheKey = _generateCacheKey(composition, pressureAbs, tempK);
@@ -59,8 +59,8 @@ class CalculatorService {
     // Check cache first
     final cacheKey = _generateCacheKey(
       composition, 
-      AppConstants.STANDARD_PRESSURE_BAR, 
-      AppConstants.STANDARD_TEMP_K
+      AppConstants.standardPressureBar, 
+      AppConstants.standardTempK
     );
     final cachedResult = _cache[cacheKey];
     if (cachedResult != null) {
@@ -71,8 +71,8 @@ class CalculatorService {
     // Calculate if not in cache
     final result = AGA8Service.calculate(
       composition, 
-      AppConstants.STANDARD_PRESSURE_BAR, 
-      AppConstants.STANDARD_TEMP_K
+      AppConstants.standardPressureBar, 
+      AppConstants.standardTempK
     );
     
     // Cache the result if valid
@@ -92,7 +92,7 @@ class CalculatorService {
     }
     
     final sum = composition.fold(0.0, (sum, value) => sum + value);
-    return (sum - 1.0).abs() <= AppConstants.COMPOSITION_SUM_TOLERANCE;
+  return (sum - 1.0).abs() <= AppConstants.compositionSumTolerance;
   }
   
   /// Generates a cache key for the given parameters
