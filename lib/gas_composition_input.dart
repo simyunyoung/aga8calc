@@ -66,11 +66,29 @@ class _GasCompositionInputState extends State<GasCompositionInput> {
   @override
   void initState() {
     super.initState();
-    // Initialize with default values
+    // Initialize with updated default values (converted to fractions)
     final defaultComposition = [
-      0.77824, 0.02, 0.06, 0.08, 0.03, 0.0015, 0.003, 0.0005, 0.00165,
-      0.00215, 0.00088, 0.00024, 0.00015, 0.00009, 0.004, 0.005, 0.002,
-      0.0001, 0.0025, 0.007, 0.001,
+      0.8853,   // Methane (C1)      = 88.53%
+      0.0010,   // Nitrogen (N2)     = 0.10%
+      0.0529,   // CO2               = 5.29%
+      0.0330,   // Ethane (C2)       = 3.3%
+      0.0160,   // Propane (C3)      = 1.6%
+      0.0034,   // i-Butane (iC4)    = 0.34%
+      0.0036,   // n-Butane (nC4)    = 0.36%
+      0.0013,   // i-Pentane (iC5)   = 0.13%
+      0.0009,   // n-Pentane (nC5)   = 0.09%
+      0.0026,   // Hexane+ (C6)      = 0.26%
+      0.0,      // n-Heptane
+      0.0,      // n-Octane
+      0.0,      // n-Nonane
+      0.0,      // n-Decane
+      0.0,      // Hydrogen
+      0.0,      // Oxygen
+      0.0,      // Carbon Monoxide
+      0.0,      // Water
+      0.0,      // Hydrogen Sulfide
+      0.0,      // Helium
+      0.0,      // Argon
     ];
     for (int i = 0; i < _controllers.length; i++) {
       _controllers[i].text = defaultComposition[i].toString();

@@ -40,8 +40,8 @@ class _MyHomePageState extends State<MyHomePage> {
   AGA8Result? _result;
   AGA8Result? _standardResult;
   List<double> _composition = [];
-  double _pressure = 100.0;
-  double _temperature = 25.0; // Default to 25°C
+  double _pressure = 90.0;
+  double _temperature = 30.0; // Default to 30°C
   bool _isPressureBarg = true; // Default to bar(g)
   bool _isTempCelsius = true; // Default to °C
   double _compositionSum = 0.0; // To track the sum of composition
